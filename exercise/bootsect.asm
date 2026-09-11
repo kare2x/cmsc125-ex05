@@ -37,26 +37,26 @@ mainloop:
     call getstr
 
                 ; If no command is entered show the prompt again
-    mov si, buffer              ; Point SI to the beginning of the user input buffer
-    cmp byte [si], 0            ; Check if the very first byte is a null terminator (empty input)
-    je mainloop                 ; If empty, jump straight back to the top of mainloop
+    mov si, buffer
+    cmp byte [si], 0
+    je mainloop
 
                 ; compare the command issued to the "boot" command
-    mov si, buffer              ; Point SI to the user's inputted string
-    mov di, cmd_boot            ; Point DI to the target "boot" string
-    call strcmp                 ; Run the comparison routine (sets carry flag if matched)
+    mov si, buffer
+    mov di, cmd_boot
+    call strcmp
 
                 ; we jump to the routine which loads the kernel when the "boot" command is issued
-    jc .load_kernel             ; If carry flag is set (strings are equal), jump to .load_kernel
+    jc .load_kernel
 
                 ; otherwise we just show the prompt again
-    jmp mainloop                ; If it didn't jump above, the command was wrong, so restart loop
+    jmp mainloop
 
 
     .load_kernel:
                     ; we show some message telling that the kernel is being loaded
-    mov si, msg                 ; Point SI to the "Loading kernel..." message string
-    call putstr                 ; Print the message to the screen
+    mov si, msg
+    call putstr
 
 	call read_kernel        	; Load stuff from the bootdrive
 
@@ -90,19 +90,19 @@ read_kernel:
                 ; insert lines of code for reading the kernel sector
                 ; you will need to use INT 0x13 (see your handouts)
                 ; carefully, initialize the necessary registers (see your handouts)
-    mov ax, KERNEL_SEGMENT  ; Move 0x1000 into AX (can't move directly to ES)
-    mov es, ax              ; Set Extra Segment (ES) to 0x1000
-    mov bx, 0               ; Set BX to 0 so ES:BX points to exactly 0x1000:0000
+    mov ax, KERNEL_SEGMENT 
+    mov es, ax
+    mov bx, 0 ; ES:BX 0x1000:0000
 
-    mov ah, 0x02            ; Set AH to 0x02 for BIOS Read Sector service
-    mov al, 1               ; Set AL to 1 to read a single sector
-    mov ch, 0               ; Set CH to 0 for track/cylinder 0
-    mov cl, 2               ; Set CL to 2 since the kernel is in the second sector
-    mov dh, 0               ; Set DH to 0 for head 0
-    mov dl, [bootdrv]       ; Set DL to the boot drive ID we saved earlier
-    int 13h                 ; Trigger the BIOS interrupt to read the disk
+    mov ah, 0x02 ; BIOS Read Sector service
+    mov al, 1 ; read a single sector
+    mov ch, 0 ; track/cylinder 0
+    mov cl, 2 ; kernel is in the second sector
+    mov dh, 0 ; head 0
+    mov dl, [bootdrv]
+    int 13h ; BIOS interrupt
 
-    jc .read                ; If carry flag is set (read failed), jump back and try reading again
+    jc .read
 
   retn
 
